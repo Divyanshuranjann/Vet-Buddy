@@ -44,6 +44,14 @@ body {
   .skeleton {
     @apply animate-pulse rounded-xl bg-slate-200/80;
   }
+
+  .bg-shop-dark {
+    @apply bg-[#0B0F1A];
+  }
+
+  .bg-shop-card {
+    @apply bg-[#141B2D];
+  }
 }
 
 /* Custom scrollbar */

@@ -4,6 +4,7 @@ import { SECTION_IDS, SITE } from "@/lib/constants";
 
 const quickLinks = [
   { label: "Home", href: `#${SECTION_IDS.home}` },
+  { label: "Pet Shop", href: "/shop" },
   { label: "Services", href: `#${SECTION_IDS.services}` },
   { label: "Consultation", href: `#${SECTION_IDS.consult}` },
   { label: "Book appointment", href: `#${SECTION_IDS.appointment}` },

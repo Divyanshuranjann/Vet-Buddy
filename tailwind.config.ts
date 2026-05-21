@@ -23,6 +23,10 @@ const config: Config = {
         cyan: {
           glow: "#22D3EE",
         },
+        shop: {
+          dark: "#0B0F1A",
+          card: "#141B2D",
+        },
       },
       fontFamily: {
         sans: ["var(--font-dm-sans)", "system-ui", "sans-serif"],

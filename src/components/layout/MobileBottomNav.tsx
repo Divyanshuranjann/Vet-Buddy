@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Home, Stethoscope, Phone, Calendar, MessageCircle } from "lucide-react";
+import { Home, Stethoscope, Phone, Calendar, MessageCircle, ShoppingBag } from "lucide-react";
 import { SECTION_IDS, SITE } from "@/lib/constants";
 
 const items = [
   { href: `#${SECTION_IDS.home}`, label: "Home", icon: Home },
+  { href: "/shop", label: "Shop", icon: ShoppingBag },
   { href: `#${SECTION_IDS.services}`, label: "Care", icon: Stethoscope },
   { href: `tel:${SITE.phoneTel}`, label: "Call", icon: Phone, external: true },
   { href: SITE.whatsappUrl, label: "Chat", icon: MessageCircle, external: true },

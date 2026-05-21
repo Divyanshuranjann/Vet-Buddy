@@ -8,12 +8,13 @@ import { SECTION_IDS, SITE } from "@/lib/constants";
 
 const navLinks = [
   { label: "Home", href: `#${SECTION_IDS.home}` },
+  { label: "Shop", href: "/shop", isRoute: true },
   { label: "Services", href: `#${SECTION_IDS.services}` },
   { label: "Consult a Vet", href: `#${SECTION_IDS.consult}` },
   { label: "Emergency", href: `#${SECTION_IDS.emergency}` },
   { label: "About", href: `#${SECTION_IDS.about}` },
   { label: "Contact", href: `#${SECTION_IDS.contact}` },
-];
+] as const;
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -26,7 +27,7 @@ export function Navbar() {
           aria-label="Main"
         >
           <Link
-            href={`#${SECTION_IDS.home}`}
+            href="/"
             className="flex items-center gap-2 font-display text-lg font-bold text-navy-900"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-brand to-cyan-glow text-white shadow-float">
