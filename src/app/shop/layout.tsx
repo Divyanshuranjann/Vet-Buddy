@@ -16,7 +16,7 @@ export default function ShopLayout({
 }) {
   return (
     <ShopProviders>
-      <div className="min-h-screen bg-shop-dark text-white">{children}</div>
+      <div className="min-h-screen bg-white text-navy-900">{children}</div>
       <CartDrawer />
       <FloatingCartButton />
     </ShopProviders>

@@ -17,8 +17,8 @@ export function CategoryPills({ selected, onSelect }: Props) {
         onClick={() => onSelect("")}
         className={`rounded-full px-4 py-2 text-sm font-medium transition ${
           !selected
-            ? "bg-gradient-to-r from-sky-brand to-cyan-glow text-navy-900"
-            : "border border-slate-600 bg-slate-800/80 text-slate-300 hover:border-sky-brand/50"
+            ? "bg-gradient-to-r from-sky-brand to-cyan-glow text-white"
+            : "border border-slate-200 bg-white/80 text-navy-900 hover:border-sky-brand/50"
         }`}
       >
         All
@@ -31,8 +31,8 @@ export function CategoryPills({ selected, onSelect }: Props) {
           onClick={() => onSelect(cat.slug)}
           className={`rounded-full px-4 py-2 text-sm font-medium transition ${
             selected === cat.slug
-              ? "bg-gradient-to-r from-sky-brand to-cyan-glow text-navy-900"
-              : "border border-slate-600 bg-slate-800/80 text-slate-300 hover:border-sky-brand/50"
+              ? "bg-gradient-to-r from-sky-brand to-cyan-glow text-white"
+              : "border border-slate-200 bg-white/80 text-navy-900 hover:border-sky-brand/50"
           }`}
         >
           <span className="mr-1">{cat.icon}</span>

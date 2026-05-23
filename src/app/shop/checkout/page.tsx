@@ -8,6 +8,10 @@ import { ShopNavbar } from "@/components/shop/ShopNavbar";
 import { QRPayment } from "@/components/shop/QRPayment";
 import { useCart } from "@/context/CartContext";
 import { getProduct, createOrder, markOrderPaid } from "@/lib/shop/api";
+import {
+  createOrder as createOrderFirebase,
+  markOrderAsPaid,
+} from "@/lib/firebase/realtimeorderservice";
 import { formatINR } from "@/lib/shop/format";
 import { SHOP_ROUTES } from "@/lib/shop/constants";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -24,6 +28,7 @@ function CheckoutContent() {
   const [step, setStep] = useState<"form" | "payment" | "done">("form");
   const [orderId, setOrderId] = useState<string>("");
   const [dbOrderId, setDbOrderId] = useState<string>("");
+  const [firebaseOrderId, setFirebaseOrderId] = useState<string>("");
   const [coupon, setCoupon] = useState("");
   const [form, setForm] = useState({
     customerName: "",
@@ -64,54 +69,133 @@ function CheckoutContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.customerName || !form.phone || !form.line1 || !form.pincode) {
-      showToast("Please fill required fields");
+      showToast("❌ Please fill all required fields");
       return;
     }
-    const orderItems = checkoutItems.map((i) => ({
-      productId: i.productId,
-      name: i.name,
-      image: i.image,
-      price: i.price,
-      quantity: i.quantity,
-    }));
-    const order = (await createOrder({
-      customerName: form.customerName,
-      phone: form.phone,
-      email: form.email,
-      address: {
-        line1: form.line1,
-        line2: form.line2,
-        city: form.city,
-        state: form.state,
-        pincode: form.pincode,
-      },
-      items: orderItems,
-      couponCode: coupon || undefined,
-    })) as { orderId: string; _id: string; total: number } | null;
 
-    if (order) {
-      setOrderId(order.orderId);
-      setDbOrderId(order._id);
-      setTotal(order.total);
+    try {
+      const orderItems = checkoutItems.map((i) => ({
+        productId: i.productId,
+        name: i.name,
+        image: i.image,
+        price: i.price,
+        quantity: i.quantity,
+      }));
+
+      // Generate unique customer ID
+      const customerId = `customer_${Date.now()}`;
+
+      // 📝 Try to create order via backend API first
+      let backendOrderId = "";
+      let backendTotal = total;
+      try {
+        const order = (await createOrder({
+          customerName: form.customerName,
+          phone: form.phone,
+          email: form.email,
+          address: {
+            line1: form.line1,
+            line2: form.line2,
+            city: form.city,
+            state: form.state,
+            pincode: form.pincode,
+          },
+          items: orderItems,
+          ...(coupon ? { couponCode: coupon } : {}),
+        })) as { orderId: string; _id: string; total: number } | null;
+
+        if (order) {
+          backendOrderId = order.orderId;
+          setDbOrderId(order._id);
+          backendTotal = order.total;
+        }
+      } catch (apiError) {
+        console.warn(
+          "⚠️ Backend API error (continuing with Firebase only):",
+          apiError,
+        );
+      }
+
+      // Generate fallback order ID
+      const fallbackOrderId = backendOrderId || `VB${Date.now()}`;
+      setOrderId(fallbackOrderId);
+
+      const firebaseOrder = {
+        customerId,
+        customerName: form.customerName,
+        customerEmail: form.email,
+        customerPhone: form.phone,
+        items: orderItems,
+        shippingAddress: {
+          line1: form.line1,
+          line2: form.line2,
+          city: form.city,
+          state: form.state,
+          pincode: form.pincode,
+        },
+        subtotal: checkoutItems.reduce((s, i) => s + i.price * i.quantity, 0),
+        tax: 0,
+        deliveryCharge: 0,
+        totalAmount: backendTotal,
+        ...(coupon ? { couponCode: coupon } : {}), // ✅ FIXED
+        status: "pending" as const,
+        paymentMethod: "upi",
+        orderId: fallbackOrderId,
+        notes: "",
+      };
+
+      console.log("🚀 Saving order to Firebase:", firebaseOrder);
+      const fbOrderId = await createOrderFirebase(firebaseOrder);
+      setFirebaseOrderId(fbOrderId);
+      console.log("✅ Order saved to Firebase with ID:", fbOrderId);
+
+      setTotal(backendTotal);
       setStep("payment");
-    } else {
-      setOrderId(`VB${Date.now()}`);
-      setStep("payment");
+      showToast("📝 Order details saved! Proceeding to payment...");
+    } catch (error) {
+      console.error("❌ Error processing order:", error);
+      showToast("❌ Error processing order. Please try again.");
     }
   };
 
   const handlePaid = async () => {
-    if (dbOrderId) await markOrderPaid(dbOrderId);
-    clearCart();
-    setStep("done");
-    showToast("Order placed successfully!");
+    try {
+      // Mark as paid in backend if available
+      if (dbOrderId) {
+        try {
+          await markOrderPaid(dbOrderId);
+        } catch (err) {
+          console.warn("Backend payment update failed, continuing...", err);
+        }
+      }
+
+      // 🔥 Mark as paid in Firebase
+      if (firebaseOrderId) {
+        try {
+          await markOrderAsPaid(firebaseOrderId);
+          console.log("✅ Firebase order marked as paid:", firebaseOrderId);
+        } catch (err) {
+          console.error("⚠️ Firebase payment update failed:", err);
+        }
+      }
+
+      clearCart();
+      setStep("done");
+      showToast("✅ Order placed successfully!");
+    } catch (error) {
+      console.error("❌ Error finalizing payment:", error);
+      showToast("❌ Error completing payment. Please contact support.");
+    }
   };
 
   if (checkoutItems.length === 0 && step === "form") {
     return (
       <div className="py-20 text-center">
         <p className="text-slate-400">Your cart is empty</p>
-        <Link href={SHOP_ROUTES.shop} className="mt-4 inline-block text-sky-brand">
+        <Link
+          href={SHOP_ROUTES.shop}
+          className="mt-4 inline-block text-sky-brand"
+        >
           Continue shopping
         </Link>
       </div>
@@ -124,8 +208,17 @@ function CheckoutContent() {
 
       {step === "done" ? (
         <div className="mt-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-8 text-center">
-          <p className="text-xl font-bold text-emerald-400">Order Confirmed!</p>
-          <p className="mt-2 text-slate-400">Order ID: {orderId}</p>
+          <p className="text-xl font-bold text-emerald-400">
+            ✅ Order Confirmed!
+          </p>
+          <p className="mt-2 text-slate-400">
+            Order ID: <span className="font-mono font-semibold">{orderId}</span>
+          </p>
+          {firebaseOrderId && (
+            <p className="mt-1 text-xs text-slate-500">
+              Firebase ID: {firebaseOrderId}
+            </p>
+          )}
           <Link
             href={SHOP_ROUTES.shop}
             className="mt-6 inline-block rounded-xl bg-sky-brand px-6 py-3 font-semibold text-navy-900"
@@ -174,17 +267,13 @@ function CheckoutContent() {
               </div>
               <button
                 type="submit"
-                className="w-full rounded-xl bg-gradient-to-r from-sky-brand to-cyan-glow py-3 font-semibold text-navy-900"
+                className="w-full rounded-xl bg-gradient-to-r from-sky-brand to-cyan-glow py-3 font-semibold text-navy-900 transition hover:opacity-90"
               >
                 Continue to Payment
               </button>
             </form>
           ) : (
-            <QRPayment
-              amount={total}
-              orderId={orderId}
-              onPaid={handlePaid}
-            />
+            <QRPayment amount={total} orderId={orderId} onPaid={handlePaid} />
           )}
 
           <div className="rounded-2xl border border-white/10 bg-shop-card p-6 h-fit">
@@ -202,7 +291,9 @@ function CheckoutContent() {
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 text-sm text-white">{item.name}</p>
+                    <p className="line-clamp-1 text-sm text-white">
+                      {item.name}
+                    </p>
                     <p className="text-xs text-slate-500">
                       Qty {item.quantity} × {formatINR(item.price)}
                     </p>

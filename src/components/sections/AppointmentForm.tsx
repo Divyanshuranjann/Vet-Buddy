@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Send } from "lucide-react";
 import { SECTION_IDS } from "@/lib/constants";
 import { useToast } from "@/components/providers/ToastProvider";
+import { createAppointment } from "@/lib/firebase";
 
 const petTypes = ["Dog", "Cat", "Bird", "Rabbit", "Other"];
 const serviceOptions = [
@@ -20,15 +21,73 @@ const serviceOptions = [
 export function AppointmentForm() {
   const { showToast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
-    window.setTimeout(() => {
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      // Extract form values with validation
+      const name = formData.get("name") as string;
+      const phone = formData.get("phone") as string;
+      const petType = formData.get("petType") as string;
+      const service = formData.get("service") as string;
+      const date = formData.get("date") as string;
+      const message = formData.get("message") as string;
+
+      // Validate required fields
+      if (!name || !phone || !petType || !service || !date) {
+        showToast("❌ Please fill all required fields");
+        setSubmitting(false);
+        return;
+      }
+
+      console.log("📝 Form data:", { name, phone, petType, service, date, message });
+
+      // Generate a customer ID
+      const customerId = `customer_${Date.now()}`;
+      
+      const appointmentData = {
+        customerId,
+        customerName: name,
+        customerPhone: phone,
+        customerEmail: "",
+        petType,
+        petName: "",
+        serviceType: service,
+        appointmentDate: date,
+        appointmentTime: "",
+        status: "pending" as const,
+        notes: message,
+      };
+
+      console.log("🚀 Sending to Firebase:", appointmentData);
+
+      // Call Firebase service
+      const appointmentId = await createAppointment(appointmentData);
+      
+      console.log("✅ Appointment created successfully:", appointmentId);
+
+      // Reset form using ref
+      if (formRef.current) {
+        formRef.current.reset();
+      }
+
       setSubmitting(false);
-      (e.target as HTMLFormElement).reset();
-      showToast("Appointment request received! We’ll call you shortly.");
-    }, 700);
+      showToast(`✅ Appointment saved! ID: ${appointmentId}`);
+      
+    } catch (error: any) {
+      console.error("❌ Full error object:", error);
+      console.error("❌ Error message:", error?.message);
+      console.error("❌ Error code:", error?.code);
+      console.error("❌ Error details:", JSON.stringify(error, null, 2));
+      
+      setSubmitting(false);
+      showToast("❌ Failed to save appointment. Check console for details.");
+    }
   }
 
   return (
@@ -60,6 +119,7 @@ export function AppointmentForm() {
           className="mx-auto mt-10 max-w-2xl"
         >
           <form
+            ref={formRef}
             onSubmit={handleSubmit}
             className="glass space-y-4 rounded-3xl p-5 shadow-glass-lg sm:p-6 md:p-8"
           >
@@ -151,7 +211,7 @@ export function AppointmentForm() {
               className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sky-brand to-cyan-glow py-3.5 text-sm font-semibold text-white shadow-float transition disabled:opacity-70"
             >
               {submitting ? (
-                "Sending..."
+                "Saving..."
               ) : (
                 <>
                   <Calendar className="h-4 w-4" />
