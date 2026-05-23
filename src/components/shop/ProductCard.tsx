@@ -32,7 +32,7 @@ export function ProductCard({ product }: Props) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-shop-card shadow-lg transition hover:border-sky-brand/30 hover:shadow-[0_8px_40px_rgba(56,189,248,0.12)]"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg transition hover:border-sky-brand/30 hover:shadow-[0_8px_40px_rgba(56,189,248,0.12)]"
     >
       <Link href={SHOP_ROUTES.product(product.slug)} className="relative block">
         {product.isBestSeller && (
@@ -45,7 +45,7 @@ export function ProductCard({ product }: Props) {
             {discount}% off
           </span>
         )}
-        <div className="relative aspect-square overflow-hidden bg-slate-800">
+        <div className="relative aspect-square overflow-hidden bg-slate-100">
           <Image
             src={product.images[0] || "/placeholder.png"}
             alt={product.name}
@@ -59,7 +59,7 @@ export function ProductCard({ product }: Props) {
       <button
         type="button"
         onClick={() => toggle(product._id)}
-        className="absolute right-3 top-[calc(50%-2rem)] z-10 flex h-9 w-9 items-center justify-center rounded-full bg-slate-900/80 text-white backdrop-blur transition hover:bg-sky-brand"
+        className="absolute right-3 top-[calc(50%-2rem)] z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-navy-900 backdrop-blur transition hover:bg-sky-brand hover:text-white"
         aria-label="Wishlist"
       >
         <FiHeart
@@ -69,22 +69,22 @@ export function ProductCard({ product }: Props) {
 
       <div className="flex flex-1 flex-col p-3 md:p-4">
         <Link href={SHOP_ROUTES.product(product.slug)}>
-          <h3 className="line-clamp-2 text-sm font-semibold text-white transition hover:text-sky-brand md:text-base">
+          <h3 className="line-clamp-2 text-sm font-semibold text-navy-900 transition hover:text-sky-brand md:text-base">
             {product.name}
           </h3>
         </Link>
         <div className="mt-1 flex items-center gap-1 text-amber-400">
           <FiStar className="h-3.5 w-3.5 fill-current" />
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-600">
             {product.rating} ({product.reviewCount})
           </span>
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="font-display text-lg font-bold text-white">
+          <span className="font-display text-lg font-bold text-navy-900">
             {formatINR(product.price)}
           </span>
           {product.compareAtPrice > product.price && (
-            <span className="text-xs text-slate-500 line-through">
+            <span className="text-xs text-slate-400 line-through">
               {formatINR(product.compareAtPrice)}
             </span>
           )}
@@ -92,17 +92,17 @@ export function ProductCard({ product }: Props) {
 
         <div className="mt-auto flex gap-2 pt-3">
           {isInCart(product._id) && cartItem ? (
-            <div className="flex flex-1 items-center justify-between rounded-xl border border-slate-600 bg-slate-800/80 px-2">
+            <div className="flex flex-1 items-center justify-between rounded-xl border border-slate-200 bg-white/80 px-2">
               <button
                 type="button"
                 onClick={() =>
                   updateQuantity(product._id, cartItem.quantity - 1)
                 }
-                className="p-2 text-slate-300 hover:text-white"
+                className="p-2 text-slate-600 hover:text-navy-900"
               >
                 <FiMinus />
               </button>
-              <span className="text-sm font-semibold text-white">
+              <span className="text-sm font-semibold text-navy-900">
                 {cartItem.quantity}
               </span>
               <button
@@ -110,7 +110,7 @@ export function ProductCard({ product }: Props) {
                 onClick={() =>
                   updateQuantity(product._id, cartItem.quantity + 1)
                 }
-                className="p-2 text-slate-300 hover:text-white"
+                className="p-2 text-slate-600 hover:text-navy-900"
               >
                 <FiPlus />
               </button>

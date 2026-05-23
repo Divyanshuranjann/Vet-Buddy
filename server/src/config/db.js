@@ -1,8 +1,23 @@
-import mongoose from "mongoose";
+import admin from "firebase-admin";
 
 export async function connectDB() {
-  const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/vetbuddy_shop";
-  mongoose.set("strictQuery", true);
-  await mongoose.connect(uri);
-  console.log("MongoDB connected");
+  if (!admin.apps.length) {
+    try {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || "{}");
+      
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: process.env.FIREBASE_REALTIME_DB_URL,
+      });
+      
+      console.log("✅ Firebase initialized successfully");
+    } catch (error) {
+      console.error("❌ Error initializing Firebase:", error.message);
+      throw error;
+    }
+  }
+}
+
+export function getFirestore() {
+  return admin.firestore();
 }

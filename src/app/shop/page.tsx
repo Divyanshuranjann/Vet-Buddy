@@ -82,7 +82,7 @@ export default function ShopPage() {
 
           <div className="min-w-0 flex-1">
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-600">
                 {pagination
                   ? `${pagination.total} products`
                   : "Loading..."}
@@ -90,7 +90,7 @@ export default function ShopPage() {
               <button
                 type="button"
                 onClick={() => setFiltersOpen(true)}
-                className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm lg:hidden"
+                className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-navy-900 lg:hidden"
               >
                 <FiFilter /> Filters
               </button>
@@ -99,7 +99,7 @@ export default function ShopPage() {
             {loading ? (
               <ProductGridSkeleton />
             ) : products.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-600 py-16 text-center text-slate-400">
+              <div className="rounded-2xl border border-dashed border-slate-200 py-16 text-center text-slate-600">
                 No products found. Try adjusting filters.
               </div>
             ) : (
@@ -123,8 +123,8 @@ export default function ShopPage() {
                       onClick={() => setPage(p)}
                       className={`h-10 w-10 rounded-lg text-sm font-medium ${
                         page === p
-                          ? "bg-sky-brand text-navy-900"
-                          : "border border-slate-600 text-slate-300"
+                          ? "bg-sky-brand text-white"
+                          : "border border-slate-200 text-navy-900"
                       }`}
                     >
                       {p}
@@ -136,7 +136,7 @@ export default function ShopPage() {
           </div>
         </div>
 
-        <footer className="mt-16 border-t border-white/5 py-8 text-center text-sm text-slate-500">
+        <footer className="mt-16 border-t border-white/60 py-8 text-center text-sm text-slate-600">
           <p>
             {SITE.name} Pet Shop · Need help?{" "}
             <Link href={`tel:${SITE.phoneTel}`} className="text-sky-brand">

@@ -1,6 +1,6 @@
 {
   "name": "vet-buddy",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "next lint",
     "server": "npm run dev --prefix server",
-    "server:seed": "npm run seed --prefix server"
+    "server:start": "npm run start --prefix server",
+    "server:seed": "npm run seed --prefix server",
+    "server:build": "cd server && npm ci && cd ..",
+    "setup": "npm install && cd server && npm install && cd ..",
+    "build:all": "npm run build && npm run server:build"
   },
   "dependencies": {
     "firebase": "^12.13.0",
@@ -29,5 +33,9 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }
